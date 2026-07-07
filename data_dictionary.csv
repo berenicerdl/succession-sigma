@@ -1,0 +1,42 @@
+﻿Sheet,Field / Measure,Technical Name,Description,Sensitivity,Grain
+Demographics,Employee ID,Employee ID / NIP,Unique identifier of the employee,High,Employee
+Demographics,Employee Name,Employee Name / Name,Full name of the employee,Very High,Employee
+Demographics,Gender,Gender,Gender classification (Male/Female),Medium/High,Employee
+Demographics,Date of Birth,Date of Birth,Employee birth date,High,Employee
+Demographics,Type of Employee,Type of Employee,Operator or Administrator,Low,Employee
+Demographics,Employee Position Type,Position Type,"Permanent, Temporary, Contract",Low,Employee
+Demographics,Date of Entry to Alfa,Date of Entry to Alfa,Entry date for tenure calculation (Alfa),High,Employee
+Demographics,Date of Entry to Sigma,Date of Entry to Sigma,Entry date for tenure calculation (Sigma),High,Employee
+Demographics,Age,Derived from DOB,Age in years,Medium,Employee
+Demographics,Tenure (Years) Alfa,Derived,Years since entry to Alfa,Low,Employee
+Demographics,Age Band,Derived,"<30, 30-39, 40-49, 50-54, 55+",Low,Employee
+Demographics,Tenure Band,Derived,"<1 Year, 1-3, 3-5, 5+",Low,Employee
+Plantilla Global,NIP,NIP,Número de Identificación Personal en SAP,High,Employee
+Plantilla Global,NIVEL,NIVEL,Nivel jerárquico (N1–N6),Low,Position
+Plantilla Global,IPE,IPE,International Position Evaluation score,Low,Position
+Plantilla Global,SEGMENTO P,SEGMENTO P,DIRECTORES / GERENTES / EMPLEADOS,Low,Position
+Plantilla Global,SUELDO SAP,SUELDO SAP,Sueldo registrado en SAP,Very High,Employee
+Plantilla Global,SDO PESOS MXN,SDO PESOS MXN,Sueldo mensualizado en MXN,Very High,Employee
+Plantilla Global,Sueldo USD,Sueldo USD,Sueldo anual en USD,Very High,Employee
+Plantilla Global,POSICI,POSICI,Comp Ratio / Posicionamiento salarial (%),High,Employee
+Succession,Position_Code,Position_Code,Unique position identifier,Low,Position
+Succession,Incumbent_Id,Incumbent_Id,ID of current role holder,High,Incumbent
+Succession,Edad,Edad / Incumbent Age,Age of incumbent at data extract,Medium,Incumbent
+Succession,Nominee_User_ID,Nominee_User_ID,ID of successor candidate,High,Nominee
+Succession,Nominee_Gender,Nominee_Gender,Gender of nominee (M/F),Medium,Nominee
+Succession,Nomination_Readiness,Nomination_Readiness,Right Now / Short / Medium / Long Term,Low,Nomination
+Succession,Nomination_Date,Nomination_Date,Date nomination was recorded,Low,Nomination
+Succession,Succession Coverage,Positions with Nominees / Position Count,% positions with at least one nominee,Low,Derived
+Succession,Ready Now Coverage,Positions Ready Now / Position Count,% positions with a Right Now nominee,Low,Derived
+Candidate Profile,Second Surname,Second Surname,Second family name of the employee,Low,Employee
+Candidate Profile,Profile Visibility,Profile Visibility,Controls recruiter visibility of profile,Low,Employee
+Candidate Profile,Relocation Availability,Relocation Availability,Willingness to relocate (national/international),Low,Employee
+Candidate Profile,State / Municipality,"State, Municipality",Geographic location of residence,Medium,Employee
+Candidate Profile,Civil Status,Civil Status,Marital status of the employee,Medium,Employee
+Candidate Profile,Native Language,Native Language,First language of the employee,Low,Employee
+Candidate Profile,Education (1-2),Education_Degree / Institution / Field / Year,Academic background up to 2 records,Low,Employee
+Candidate Profile,Previous Jobs (1-2),PrevJob_Company / Title / Start / End,Work history up to 2 prior employers,Medium,Employee
+Candidate Profile,Areas of Interest (1-2),Area_of_Interest,Functional areas the employee is interested in,Low,Employee
+Candidate Profile,Certifications (1-2),Certification / Year,Professional certifications or licenses,Low,Employee
+Candidate Profile,Languages (1-2),Language / Level,Languages spoken and proficiency level,Low,Employee
+Candidate Profile,Courses (1-2),Course / Year,"Training courses, workshops or seminars attended",Low,Employee
