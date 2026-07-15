@@ -1,0 +1,684 @@
+// ============================================================
+//  SIGMA FOODS · Planeación de Sucesión Ejecutiva 2026
+//  Medidas DAX — Listas para copiar en Power BI Desktop
+//  Área de People Analytics · Julio 2026
+//
+//  INSTRUCCIONES:
+//  1. En Power BI Desktop, crea una tabla vacía llamada "_Medidas"
+//     (Inicio → Especificar datos → 1 columna vacía → "Cargar")
+//  2. Clic derecho sobre "_Medidas" → Nueva medida
+//  3. Pega cada bloque tal como aparece aquí
+//  4. Las medidas están agrupadas por categoría para facilitar
+//     su organización en el panel de campos
+//
+//  TABLAS DEL MODELO (nombres exactos requeridos):
+//  · succession_final          → tabla de hechos
+//  · candidate_profile_final   → dimensión candidatos
+//  · demographics_final        → dimensión demográfica
+//  · plantilla_global_final    → dimensión organizacional
+// ============================================================
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 1 · CONTEO Y COBERTURA
+// ────────────────────────────────────────────────────────────
+
+Total Nominaciones =
+COUNTROWS(succession_final)
+
+// ─────────────────────────────────────────
+
+Candidatos Únicos =
+DISTINCTCOUNT(succession_final[nominee_user_id])
+
+// ─────────────────────────────────────────
+
+Posiciones con Sucesor =
+DISTINCTCOUNT(succession_final[position_code])
+
+// ─────────────────────────────────────────
+
+Incumbentes Únicos =
+DISTINCTCOUNT(succession_final[incumbent_id])
+
+// ─────────────────────────────────────────
+
+Promedio Candidatos por Posición =
+DIVIDE(
+    [Total Nominaciones],
+    [Posiciones con Sucesor]
+)
+
+// ─────────────────────────────────────────
+
+Nominaciones Short Term =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[nomination_readiness] = "Short Term"
+)
+
+// ─────────────────────────────────────────
+
+Nominaciones Medium Term =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[nomination_readiness] = "Medium Term"
+)
+
+// ─────────────────────────────────────────
+
+Nominaciones Long Term =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[nomination_readiness] = "Long Term"
+)
+
+// ─────────────────────────────────────────
+
+% Short Term =
+DIVIDE([Nominaciones Short Term], [Total Nominaciones])
+
+// ─────────────────────────────────────────
+
+% Medium Term =
+DIVIDE([Nominaciones Medium Term], [Total Nominaciones])
+
+// ─────────────────────────────────────────
+
+% Long Term =
+DIVIDE([Nominaciones Long Term], [Total Nominaciones])
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 2 · URGENCIA DE SUCESIÓN
+// ────────────────────────────────────────────────────────────
+
+Urgencia Crítica =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[succession_urgency] = "Crítica"
+)
+
+// ─────────────────────────────────────────
+
+Urgencia Alta =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[succession_urgency] = "Alta"
+)
+
+// ─────────────────────────────────────────
+
+Urgencia Media =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[succession_urgency] = "Media"
+)
+
+// ─────────────────────────────────────────
+
+Urgencia Baja =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[succession_urgency] = "Baja"
+)
+
+// ─────────────────────────────────────────
+
+% Urgencia Crítica =
+DIVIDE([Urgencia Crítica], [Total Nominaciones])
+
+// ─────────────────────────────────────────
+
+% Urgencia Alta o Crítica =
+DIVIDE(
+    CALCULATE(
+        [Total Nominaciones],
+        succession_final[succession_urgency] IN {"Crítica", "Alta"}
+    ),
+    [Total Nominaciones]
+)
+
+// ─────────────────────────────────────────
+
+Posiciones en Riesgo Alto =
+CALCULATE(
+    DISTINCTCOUNT(succession_final[position_code]),
+    succession_final[succession_urgency] IN {"Crítica", "Alta"}
+)
+
+// ─────────────────────────────────────────
+
+// Semáforo de urgencia para formato condicional
+// Devuelve 1=Crítica, 2=Alta, 3=Media, 4=Baja
+// Usar como base para reglas de color en tablas
+Semáforo Urgencia =
+SWITCH(
+    SELECTEDVALUE(succession_final[succession_urgency]),
+    "Crítica", 1,
+    "Alta",    2,
+    "Media",   3,
+    "Baja",    4,
+    BLANK()
+)
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 3 · SCORES DE CANDIDATOS
+// ────────────────────────────────────────────────────────────
+
+// NOTA: Se usa USERELATIONSHIP porque la relación activa
+// de succession_final apunta a nominee_user_id → employee_id.
+// Si renombraste las tablas, ajusta los nombres aquí.
+
+Score General Promedio =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_general]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Score Liderazgo Promedio =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_liderazgo]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Score Funcional Promedio =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_funcional]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Score Cultural Promedio =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_cultural]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Candidatos Score Alto =
+CALCULATE(
+    DISTINCTCOUNT(succession_final[nominee_user_id]),
+    candidate_profile_final[score_band] = "Alto",
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Candidatos Score Medio =
+CALCULATE(
+    DISTINCTCOUNT(succession_final[nominee_user_id]),
+    candidate_profile_final[score_band] = "Medio",
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Candidatos Score Bajo =
+CALCULATE(
+    DISTINCTCOUNT(succession_final[nominee_user_id]),
+    candidate_profile_final[score_band] = "Bajo",
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+% Candidatos Score Alto =
+DIVIDE([Candidatos Score Alto], [Candidatos Únicos])
+
+// ─────────────────────────────────────────
+
+Score General Máx =
+CALCULATE(
+    MAX(candidate_profile_final[score_general]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Score General Mín =
+CALCULATE(
+    MIN(candidate_profile_final[score_general]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        candidate_profile_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Brecha Score (Max - Promedio) =
+[Score General Máx] - [Score General Promedio]
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 4 · COMPARADOR DE CANDIDATOS (Página 3)
+// ────────────────────────────────────────────────────────────
+
+// Para usar el comparador, crea DOS tablas desconectadas:
+//   "CandidatoA" con columna "nombre" (lista de candidatos)
+//   "CandidatoB" con columna "nombre" (lista de candidatos)
+// Ambas deben llenarse con los valores únicos de full_name
+// de candidate_profile_final (sin relación al modelo).
+
+Score General Candidato A =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_general]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoA[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score General Candidato B =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_general]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoB[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score Liderazgo Candidato A =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_liderazgo]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoA[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score Liderazgo Candidato B =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_liderazgo]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoB[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score Funcional Candidato A =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_funcional]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoA[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score Funcional Candidato B =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_funcional]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoB[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score Cultural Candidato A =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_cultural]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoA[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Score Cultural Candidato B =
+CALCULATE(
+    AVERAGE(candidate_profile_final[score_cultural]),
+    candidate_profile_final[full_name] =
+        SELECTEDVALUE(CandidatoB[nombre])
+)
+
+// ─────────────────────────────────────────
+
+// Devuelve el nombre del mejor candidato según score general
+Mejor Candidato (A vs B) =
+IF(
+    [Score General Candidato A] >= [Score General Candidato B],
+    SELECTEDVALUE(CandidatoA[nombre]),
+    SELECTEDVALUE(CandidatoB[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Diferencia Score A vs B =
+[Score General Candidato A] - [Score General Candidato B]
+
+// ─────────────────────────────────────────
+
+Antigüedad Candidato A =
+CALCULATE(
+    AVERAGE(demographics_final[tenure_sigma_calculated]),
+    demographics_final[employee_name] =
+        SELECTEDVALUE(CandidatoA[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Antigüedad Candidato B =
+CALCULATE(
+    AVERAGE(demographics_final[tenure_sigma_calculated]),
+    demographics_final[employee_name] =
+        SELECTEDVALUE(CandidatoB[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Edad Candidato A =
+CALCULATE(
+    AVERAGE(demographics_final[age_calculated]),
+    demographics_final[employee_name] =
+        SELECTEDVALUE(CandidatoA[nombre])
+)
+
+// ─────────────────────────────────────────
+
+Edad Candidato B =
+CALCULATE(
+    AVERAGE(demographics_final[age_calculated]),
+    demographics_final[employee_name] =
+        SELECTEDVALUE(CandidatoB[nombre])
+)
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 5 · RIESGO DEMOGRÁFICO (Página 5)
+// ────────────────────────────────────────────────────────────
+
+Incumbentes > 55 años =
+COUNTROWS(
+    FILTER(
+        succession_final,
+        succession_final[edad] > 55
+    )
+)
+
+// ─────────────────────────────────────────
+
+Incumbentes > 60 años =
+COUNTROWS(
+    FILTER(
+        succession_final,
+        succession_final[edad] > 60
+    )
+)
+
+// ─────────────────────────────────────────
+
+% Incumbentes > 55 años =
+DIVIDE(
+    [Incumbentes > 55 años],
+    [Incumbentes Únicos]
+)
+
+// ─────────────────────────────────────────
+
+Promedio Edad Incumbente =
+AVERAGE(succession_final[edad])
+
+// ─────────────────────────────────────────
+
+Promedio Años al Retiro =
+AVERAGE(succession_final[years_to_retirement])
+
+// ─────────────────────────────────────────
+
+Incumbentes Retiro < 5 años =
+COUNTROWS(
+    FILTER(
+        succession_final,
+        succession_final[years_to_retirement] <= 5
+    )
+)
+
+// ─────────────────────────────────────────
+
+Incumbentes Retiro < 10 años =
+COUNTROWS(
+    FILTER(
+        succession_final,
+        succession_final[years_to_retirement] <= 10
+    )
+)
+
+// ─────────────────────────────────────────
+
+% Candidatas Mujeres =
+DIVIDE(
+    CALCULATE(
+        [Total Nominaciones],
+        succession_final[nominee_gender] = "F"
+    ),
+    [Total Nominaciones]
+)
+
+// ─────────────────────────────────────────
+
+% Candidatos Hombres =
+DIVIDE(
+    CALCULATE(
+        [Total Nominaciones],
+        succession_final[nominee_gender] = "M"
+    ),
+    [Total Nominaciones]
+)
+
+// ─────────────────────────────────────────
+
+Edad Promedio Candidato Nominado =
+CALCULATE(
+    AVERAGE(demographics_final[age_calculated]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        demographics_final[employee_id]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Antigüedad Promedio Candidato Nominado =
+CALCULATE(
+    AVERAGE(demographics_final[tenure_sigma_calculated]),
+    USERELATIONSHIP(
+        succession_final[nominee_user_id],
+        demographics_final[employee_id]
+    )
+)
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 6 · COMPENSACIÓN (contexto del incumbente)
+// ────────────────────────────────────────────────────────────
+
+Sueldo Promedio Incumbente MXN =
+CALCULATE(
+    AVERAGE(plantilla_global_final[sdo_pesos_mxn]),
+    USERELATIONSHIP(
+        succession_final[incumbent_id],
+        plantilla_global_final[nip]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Sueldo Promedio Incumbente USD =
+CALCULATE(
+    AVERAGE(plantilla_global_final[sueldo_usd]),
+    USERELATIONSHIP(
+        succession_final[incumbent_id],
+        plantilla_global_final[nip]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Compensación Total Promedio MXN =
+CALCULATE(
+    AVERAGE(plantilla_global_final[sdo_byc_mxn]),
+    USERELATIONSHIP(
+        succession_final[incumbent_id],
+        plantilla_global_final[nip]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Bono Pct Promedio =
+CALCULATE(
+    AVERAGE(plantilla_global_final[bono_pct_sueldo]),
+    USERELATIONSHIP(
+        succession_final[incumbent_id],
+        plantilla_global_final[nip]
+    )
+)
+
+// ─────────────────────────────────────────
+
+Sueldo Total Incumbentes en Riesgo MXN =
+CALCULATE(
+    SUM(plantilla_global_final[sdo_byc_mxn]),
+    succession_final[succession_urgency] IN {"Crítica", "Alta"},
+    USERELATIONSHIP(
+        succession_final[incumbent_id],
+        plantilla_global_final[nip]
+    )
+)
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 7 · MEDIDAS DE APOYO PARA FORMATO CONDICIONAL
+// ────────────────────────────────────────────────────────────
+
+// Usar estas medidas como reglas de color en tablas y matrices
+// Valor 1 = aplicar color de alerta, 0 = sin alerta
+
+Alerta Urgencia Crítica =
+IF(
+    SELECTEDVALUE(succession_final[succession_urgency]) = "Crítica",
+    1, 0
+)
+
+// ─────────────────────────────────────────
+
+Alerta Score Bajo =
+IF(
+    [Score General Promedio] < 50,
+    1, 0
+)
+
+// ─────────────────────────────────────────
+
+Alerta Sin Candidato Short Term =
+IF(
+    CALCULATE(
+        COUNTROWS(succession_final),
+        succession_final[nomination_readiness] = "Short Term"
+    ) = 0,
+    1, 0
+)
+
+// ─────────────────────────────────────────
+
+// Etiqueta dinámica para KPI de cobertura
+Etiqueta Cobertura =
+VAR pct = [% Candidatos Score Alto]
+RETURN
+    IF(
+        pct >= 0.6, "✓ Cobertura adecuada",
+        IF(pct >= 0.3, "⚠ Cobertura parcial", "✗ Cobertura crítica")
+    )
+
+// ─────────────────────────────────────────
+
+// Texto de resumen dinámico para tarjeta ejecutiva
+Resumen Ejecutivo =
+VAR tot  = [Total Nominaciones]
+VAR crit = [Urgencia Crítica]
+VAR alta = [Urgencia Alta]
+VAR prom = FORMAT([Score General Promedio], "0.0")
+RETURN
+    "Total nominaciones: " & tot &
+    " | Críticas: " & crit &
+    " | Altas: " & alta &
+    " | Score promedio: " & prom
+
+
+// ────────────────────────────────────────────────────────────
+//  GRUPO 8 · TENDENCIA (si se usa nomination_year/month)
+// ────────────────────────────────────────────────────────────
+
+Nominaciones Año Actual =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[nomination_year] = YEAR(TODAY())
+)
+
+// ─────────────────────────────────────────
+
+Nominaciones Año Anterior =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[nomination_year] = YEAR(TODAY()) - 1
+)
+
+// ─────────────────────────────────────────
+
+Variación YoY Nominaciones =
+[Nominaciones Año Actual] - [Nominaciones Año Anterior]
+
+// ─────────────────────────────────────────
+
+% Variación YoY =
+DIVIDE(
+    [Variación YoY Nominaciones],
+    [Nominaciones Año Anterior]
+)
+
+// ─────────────────────────────────────────
+
+Nominaciones Acum Mes Actual =
+CALCULATE(
+    [Total Nominaciones],
+    succession_final[nomination_year]  = YEAR(TODAY()),
+    succession_final[nomination_month] <= MONTH(TODAY())
+)
+
+
+// ============================================================
+//  FIN DEL ARCHIVO
+//  Sigma Foods · People Analytics · Julio 2026
+//  Total de medidas: 65
+// ============================================================
